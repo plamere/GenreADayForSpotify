@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>A Genre A Day</title>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js" type="text/javascript" charset="utf-8"></script>
+    <link href="https://d3nkxvtkt5c8vi.cloudfront.net/4.0.0/sp-bootstrap.min.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+    <link rel="shortcut icon" href="images/favicon.png">
+
+    <script id="song-template" type="text/template">
+      <div class="adiv" style="background-image: url(<%= bigIcon %>)">
+          <div class="buttons">
+                <button title='Skip this song' class='btn btn-inverse bypass tooltips'>Bypass</button>
+                <img class='playbutton play' src='images/play.png'>
+                <img class='playbutton pause' src='images/pause.png'>
+          </div>          
+         <div class="song-info">
+            <div class="title album-label"><a href="<%= song_uri %>"> <%= name %></a></div>
+            <div class="artist album-label"><a href="<%= artist_uri %>"> <%= artist %></a></div>
+         </div>
+      </div>
+    </script>
+  </head>
+
+<body>
+    <div class="navbar navbar-default" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="index.html">
+            <span class="navbar-logo">Spotify</span>
+            <span class="navbar-title">Genre-A-Day</span>
+            <span id='cur-date' class="navbar-title">date</span>
+          </a>
+        </div>
+        <div class="collapse navbar-collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li class="nav-title"><a href="about.html">About</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+
+    <div id="playerModal" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal"><span
+    aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            <h4 id="playlist-title" class="modal-title">Top 
+                <span class="gstyle"></span> <span class="gname"></span> Songs </h4>
+
+          </div>
+          <div class="modal-body">
+        <iframe id="play-button"
+        src="https://embed.spotify.com/?uri=spotify:trackset:PREFEREDTITLE:5Z7ygHQo02SUrFmcgpwsKW,1x6ACsKV4UdWS2FMuPFUiT,4bi73jCM02fMpkI11Lqmfe" frameborder="0" allowtransparency="true" width="400" height="500"></iframe>
+              </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+<div id="all-info">
+    <div class="container-fluid">
+        <div id="the-main" class="col-sm-12 ">
+            <h1 class="gname"> </h1>
+            <div id="description-div">
+                <p>
+                <span id="description" class="lead">  </span>
+                <span id="wiki-div" class="pull-right"> Read more on <a id="wiki-link" href="">Wikipedia</a></span>
+                </p>
+            </div> 
+        </div>
+    </div>
+    <div class="container-fluid">
+        <div id='similar-genres-div' class="col-sm-12">
+            <h4> Similar Genres</h4>
+            <div class="list-container">
+                <ul id='similar-genres'> </ul>
+            </div>
+        </div>
+    </div>
+    <div class="container-fluid">
+        <div  class="col-sm-12 ">
+            <div>
+                <h4> Top <span class="gname"> </span> Artists </h4>
+                <div id="artist-main" class="list-container">
+                    <ul id='artist-list'> </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container-fluid">
+        <div class="col-sm-12">
+                <h4> Top <span class="gname"></span> Songs </h4>
+                <div id="info" class=""> </div>
+                <div class="row text-center">
+                    <div class="col-sm-12 center-block">
+                        <div class="row">
+                            <button id="listen" title="Listen to all the tracks" 
+                                type="button" class="btn btn-sm btn-primary center-block"> Listen
+                            </button>
+                        </div>
+                        <br style="clear:both;"/>
+                        <div class="btn-group" role="group" aria-label='...'>
+                            <button id="intro" 
+                                title="Songs to introduce you to the genre" 
+                                type="button" class="btn btn-sm btn-primary active genre-type">Core
+                            </button>
+                            <button id="current" 
+                                title="Most popular songs being played today" 
+                                type="button" class="btn btn-sm btn-primary genre-type">In rotation
+                            </button>
+                            <button id="discovery" 
+                                title="Unexpectedly popular songs in the genre" 
+                                type="button" class="btn btn-sm btn-primary genre-type">Emerging
+                            </button>
+                         </div>
+                     </div>
+                </div>
+
+                <div id="song-main" class="col-sm-12 text-center">
+                    <br style="clear:left;"/>
+                    <div id='song-list'> </div>
+                    <br style="clear:left;"/>
+                </div>
+        </div>
+    </div>
+  </div>
+
+<br style="clear:both;"/>
+<div id="the-footer" class="">
+  <div>
+    <small>
+    Powered by <a href="http://echonest.com">The Echo Nest</a> and <a
+    href="http://Spotify.com">Spotify</a>. 
+    <p>
+    There is an older <a href="http://static.echonest.com/RdioGenreADay/">Rdio
+    version </a> of this app.
+    </small>
+  </div>
+</div>
+
+  <div id="tweet-div" class='tweet'>
+    <span id='tweet-span'> 
+        <a href="https://twitter.com/share" data-size="large" id='tweet' class="twitter-share-button" data-lang="en" data-count='none'>Tweet</a>
+        <script>!function(d,s,id){var
+        js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="https://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+    </span>
+
+
+  <a href="https://twitter.com/GenreADay" class="twitter-follow-button" data-show-count="false">Follow @GenreADay</a>
+  <script>!function(d,s,id){var
+  js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+</div>
+
+
+
+
+<script type="text/javascript">
+
+jQuery.ajaxSettings.traditional = true; 
+var host = 'http://developer.echonest.com/api/v4/';
+var apiKey =  'YTBBANYZHICTAFW2P';
+var curSong = null;
+var songTemplate = _.template($("#song-template").text());
+var spotifyTrackCache = {};
+var genreList;
+var curDateIndex = 0;
+var startingDate = new Date(2014, 0, 10);
+var curGenre = null;
+var curSongs = null;
+var curStyle = null;
+var audio = null;
+
+function initUI() {
+    $("#all-info").hide();
+    $("#date-up").click(function(e) {
+        e.preventDefault();
+        nextDateIndex();
+    });
+
+    $("#date-down").click(function(e) {
+        e.preventDefault();
+        prevDateIndex();
+    });
+
+    $("#cur-date").text(getDateString(new Date()));
+    $("#intro").click(function() {
+        $(".genre-type").removeClass('active');
+        $("#intro").addClass('active');
+        loadTopSongs(curGenre, 'core-best');
+    });
+
+    $("#current").click(function() {
+        $(".genre-type").removeClass('active');
+        $("#current").addClass('active');
+        loadTopSongs(curGenre, 'in_rotation-best');
+    });
+
+    $("#discovery").click(function() {
+        $(".genre-type").removeClass('active');
+        $("#discovery").addClass('active');
+        loadTopSongs(curGenre, 'emerging-best');
+    });
+
+    $("#listen").on('click', function() {
+        var options = { keyboard:true };
+        var tracks = getCurTracks();
+        var title = encodeURIComponent(curGenre);
+        var uri = 'https://embed.spotify.com/?uri=spotify:trackset:' + title + ':'
+                   + tracks.join(',');
+        $("#play-button").attr('src', uri);
+        $('#playerModal').modal(options)
+    });
+}
+
+function getDateString(date) {
+    return date.toDateString();
+}
+
+function initAudio() {
+    audio = $("<audio>");
+    audio.on('playing', function() {
+        songChanged(curSong);
+    });
+
+    audio.on('pause', function() {
+        songChanged(curSong);
+    });
+    audio.on('ended', function() {
+        playNext();
+    });
+}
+
+function play(url) {
+    audio.attr('src', url);
+    audio.get(0).play();
+}
+
+function isPlaying() {
+    return !audio.get(0).paused;
+}
+
+function togglePause() {
+    if (isPlaying()) {
+        audio.get(0).pause();
+    } else {
+        audio.get(0).play();
+    }
+}
+
+function playSong(song) {
+    if (song === curSong) {
+        togglePause();
+    } else {
+        var oldSong = curSong;
+        curSong = song;
+        songChanged(oldSong);
+        play(curSong.track.preview_url);
+    }
+}
+
+function playNext() {
+    if (curSong) {
+        if (curSong.which + 1 < curSongs.length) {
+            playSong(curSongs[curSong.which + 1]);
+        } else {
+            curSong = null;
+        }
+    } 
+}
+
+
+function getCurTracks() {
+    var ids = [];
+    _.each(curSongs, function(song) {
+        ids.push(song.track.id);
+    });
+    return ids;
+}
+
+
+
+function info(s) {
+    $("#info").text(s);
+}
+
+function error(s) {
+    $("#info").text(s);
+}
+
+function songChanged(song) {
+    if (song) {
+        var el = song.adiv.find('.adiv');
+
+        var pause = el.find('.pause');
+        var play = el.find('.play');
+
+        if (song  === curSong) {
+            el.addClass('is-current');
+            if (isPlaying()) {
+                pause.show();
+                play.hide();
+            } else {
+                play.show();
+                pause.hide();
+            }
+        } else {
+            el.removeClass('is-current');
+            play.show();
+            pause.hide();
+        }
+
+    }
+}
+
+function getBestAlbumURL(song, minWidth) {
+    var images = song.track.album.images;
+    var best = null;
+    if (images.length > 0) {
+        best = images[0];
+        for (var i = 1; i < images.length; i++) {
+            if (images[i].width >= minWidth) {
+                best = images[i];
+            }
+        }
+        return best.url
+    }
+}
+
+function getSongInfoForTemplate(song) {
+    return {
+        name:song.track.name,
+        song_uri: song.track.uri,
+        artist:song.track.artists[0].name,
+        artist_uri: song.track.artists[0].uri,
+        bigIcon:getBestAlbumURL(song, 300)
+    }
+}
+
+function getPlayer(song) {
+    var el = $(songTemplate(getSongInfoForTemplate(song)))
+
+    var bypass = el.find('.bypass');
+    bypass.hide();
+
+    var buttons = el.find('.buttons');
+    buttons.hide();
+
+    var pause = el.find('.pause');
+    var play = el.find('.play');
+
+    play.click( function() {
+        playSong(song);
+    });
+
+    pause.click( function() {
+        playSong(song);
+    });
+
+    el.hover(
+        function() {
+            if (isPlaying() && song == curSong) {
+                play.hide();
+                pause.show();
+            } else {
+                play.show();
+                pause.hide();
+            }
+            buttons.show();
+        },
+        function() {
+            buttons.hide();
+        }
+    );
+
+    el.find('.tooltips').tooltip({placement:'bottom', delay : 1500});
+    return el;
+}
+
+function fetchSpotifyTrackInfo(songs) {
+    var songMap = {};
+    var ids = [];
+    var list = $("#song-list");
+    list.empty();
+
+    _.each(songs, function(song) {
+        song.tid = song.tracks[0].foreign_id.split(':')[2];
+        var adiv = $("<div>");
+        adiv.attr('class', 'tadiv');
+        song.adiv = adiv;
+        list.append(adiv);
+        songMap[song.tid] = song;
+
+        if (! (song.tid in spotifyTrackCache)) {
+            ids.push(song.tid);
+        } else {
+            song.track = spotifyTrackCache[song.tid];
+        }
+    });
+
+    if (ids.length > 0) {
+        var spotifyURL = 'https://api.spotify.com/v1/tracks'
+        var params = {
+            ids: ids.join(',')
+        };
+        $.getJSON(spotifyURL, params).
+            then(
+                function(data) {
+                    _.each(data.tracks, 
+                        function(t) { 
+                            spotifyTrackCache[t.id] = t;
+                            songMap[t.id].track = t;
+                        } 
+                    );
+                    showPlaylist(songs);
+                },
+                function() {
+                    error("trouble getting spotify track info");
+                }
+            );
+    } else {
+        showPlaylist(songs);
+    }
+}
+
+
+function showPlayer(song) {
+    var player = song.adiv;
+    player.html(getPlayer(song));
+}
+
+function showPlaylist(songs) {
+    _.each(songs, 
+        function(song, index, list) { 
+            showPlayer(song); 
+        }
+    );
+}
+
+
+function loadGenre(genreName, updateURL, date) {
+    curGenre = genreName;
+    var title = genreName + ": the Genre-A-Day for " + date;
+    document.title = title;
+    if (updateURL) {
+        setURL(curGenre);
+    }
+    loadGenreInfo(genreName);
+    loadSimilarGenres(genreName);
+    loadTopArtists(genreName);
+    loadTopSongs(genreName, 'core-best');
+    tweetSetup();
+}
+
+function loadGenreInfo(genreName) {
+    var url = host + 'genre/profile'
+    $.getJSON(url, {api_key:apiKey, name:genreName, bucket:['description', 'urls']},
+        function(data) {
+            var genre = data.response.genres[0];
+            $(".gname").text(genre.name);
+            $("#description").text(genre.description);
+            if ('wikipedia_url' in genre.urls) {
+                $("#wiki-link").attr('href', genre.urls.wikipedia_url);
+                $("#wiki-div").show();
+            } else {
+                $("#wiki-div").hide();
+            }
+            $("#all-info").show();
+        });
+}
+
+
+function loadTopArtists(genreName) {
+    var url = host + 'genre/artists'
+    $.getJSON(url, {api_key:apiKey, name:genreName },
+        function(data) {
+            var artists = data.response.artists;
+            var list = $("#artist-list");
+            list.empty();
+            _.each(artists, function(artist, i) {
+                var a = $("<a>").text(artist.name).attr('href', 'http://static.echonest.com/echotron/?id='+ artist.id);
+                var li = $("<li>").append(a);
+                list.append(li);
+            });
+        });
+}
+
+function loadSimilarGenres(genreName) {
+    var url = host + 'genre/similar'
+    $.getJSON(url, {api_key:apiKey, name:genreName },
+        function(data) {
+            var genres = data.response.genres;
+            var list = $("#similar-genres");
+            list.empty();
+            if (genres.length > 0) {
+                $("#similar-genres-div").show();
+                _.each(genres, function(genre, i) {
+                    var a = $("<a>").text(genre.name).attr('href', '?genre='+genre.name);
+                    var li = $("<li>").append(a).addClass('gna');
+                    list.append(li);
+                });
+            } else {
+                $("#similar-genres-div").hide();
+            }
+        });
+}
+
+function loadTopSongs(genreName, preset) {
+    info("");
+    curStyle = preset.replace(/_/g, ' ');
+    curStyle = curStyle.replace('-best', '');
+    $(".gstyle").text(curStyle);
+    var url = host + 'playlist/static';
+    $.getJSON(url, {api_key:apiKey, bucket:['tracks', 'id:spotify-US'],    
+                    limit:true, type:"genre-radio", 
+                    results:12, 
+                    genre_preset:preset,
+                    genre:genreName },
+        function(data) {
+            var songs = data.response.songs;
+            curSongs = songs;
+            _.each(songs, function(song, i) {
+                song.which = i;
+            });
+            fetchSpotifyTrackInfo(songs);
+        });
+}
+
+function urldecode(str) {
+   return decodeURIComponent((str+'').replace(/\+/g, '%20'));
+}
+
+function getDayDelta() {
+    var today = new Date();
+    today.setHours(0);
+    today.setMinutes(0);
+    today.setSeconds(0);
+    today.setMilliseconds(0);
+    var delta = today - startingDate;
+    var days =  Math.round(delta / (1000 * 60 * 60* 24));
+    return days;
+}
+
+function setURL(genre) {
+    var p = '?genre=' + genre;
+    history.replaceState({}, document.title, p);
+}
+
+function loadGenreOfTheDay() {
+    var idx = getDayDelta();
+    setDateIndex(idx, false);
+}
+
+function setDateIndex(idx, updateURL) {
+    if (idx < 0) {
+        idx = 0;
+    } else if (idx >= genreList.length) {
+        idx = genreList.length - 1;
+    }
+    curDateIndex = idx;
+    var next = startingDate.getTime() + idx * 24 * 60 * 60 * 1000;
+    var nextDate = new Date(next);
+    //var ds = nextDate.toLocaleDateString();
+    var ds = getDateString(nextDate);
+    $("#cur-date").text(ds);
+    loadGenre(genreList[curDateIndex], updateURL, ds);
+}
+
+function nextDateIndex() {
+    setDateIndex(curDateIndex + 1, true);
+}
+
+function prevDateIndex() {
+    setDateIndex(curDateIndex - 1, true);
+}
+
+function findIndexForGenre(genre) {
+    for (var i = 0; i < genreList.length; i++) {
+        if (genreList[i].toLowerCase() === genre) {
+            return i;
+        }
+    }
+    return 158;
+}
+
+function loadGenreList() {
+    var url = 'genres.js';
+    $.getJSON(url, {},
+        function(data) {
+            genreList = data;
+            processParams();
+        });
+}
+
+function tweetSetup() {
+    $(".twitter-share-button").remove();
+    var tweet = $('<a>')
+        .attr('href', "https://twitter.com/share")
+        .attr('id', "tweet")
+        .attr('class', "twitter-share-button")
+        .attr('data-lang', "en")
+        .attr('data-size', "large")
+        .attr('data-count', "none")
+        .text('Tweet');
+
+    $("#tweet-span").prepend(tweet);
+    tweet.attr('data-text', document.title + " #GenreADay");
+    tweet.attr('data-url', document.URL);
+
+    // twitter can be troublesome. If it is not there, don't bother loading it
+    if ('twttr' in window) {
+        twttr.widgets.load();
+    }
+}
+
+function processParams() {
+    var params = {};
+    var q = document.URL.split('?')[1];
+    if(q != undefined){
+        q = q.split('&');
+        for(var i = 0; i < q.length; i++){
+            var pv = q[i].split('=');
+            var p = pv[0];
+            var v = pv[1];
+            params[p] = urldecode(v);
+        }
+    }
+
+    if ('genre' in params) {
+        var genre = params['genre'];
+        var index = findIndexForGenre(genre);
+        setDateIndex(index, true);
+    }  else {
+        loadGenreOfTheDay();
+    }
+}
+
+
+
+$(document).ready(function() {
+    $.ajaxSetup( {cache: true});
+    initAudio();
+    initUI();
+    loadGenreList();
+});
+
+</script>
+</body>
+</html>
